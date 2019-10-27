@@ -186,7 +186,7 @@ fn srgb8_to_linear_f32(val: u8) -> f32 {
     unsafe { *SRGB_TO_F32_TABLE.get_unchecked(val as usize) }
 }
 
-/// A color stored as big endian bgra32
+/// A color stored as big endian rgba32
 #[derive(Copy, Clone, Debug)]
 pub struct Color(pub u32);
 
@@ -276,7 +276,7 @@ impl Color {
     #[inline]
     pub fn rgba(red: u8, green: u8, blue: u8, alpha: u8) -> Color {
         #[allow(clippy::cast_lossless)]
-        let word = (blue as u32) << 24 | (green as u32) << 16 | (red as u32) << 8 | alpha as u32;
+        let word = (red as u32) << 24 | (green as u32) << 16 | (blue as u32) << 8 | alpha as u32;
         Color(word.to_be())
     }
 
@@ -284,9 +284,9 @@ impl Color {
     pub fn as_rgba(self) -> (u8, u8, u8, u8) {
         let host = u32::from_be(self.0);
         (
-            (host >> 8) as u8,
-            (host >> 16) as u8,
             (host >> 24) as u8,
+            (host >> 16) as u8,
+            (host >> 8) as u8,
             (host & 0xff) as u8,
         )
     }

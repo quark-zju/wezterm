@@ -12,7 +12,7 @@ pub type TextureCoord = euclid::Point2D<f32, TextureUnit>;
 pub type TextureRect = euclid::Rect<f32, TextureUnit>;
 pub type TextureSize = euclid::Size2D<f32, TextureUnit>;
 
-/// Represents a big endian bgra32 bitmap that may not be present
+/// Represents a big endian rgba32 bitmap that may not be present
 /// in local RAM, but may be addressable in eg: video RAM
 pub trait Texture2d {
     /// Copy the bits from the source bitmap to the texture at the location
@@ -102,18 +102,18 @@ mod avx {
         color: Color,
     ) {
         // This holds 8 copies of the pixel value
-        let bgra256 = std::arch::x86_64::_mm256_set1_epi32(color.0 as _);
+        let rgba256 = std::arch::x86_64::_mm256_set1_epi32(color.0 as _);
         let aligned_width = align_lo(width_pixels, 8);
 
         if is_aligned(dest as usize, 32) && is_aligned(stride_bytes, 32) {
             for _row in 0..height_pixels {
                 for col in (0..aligned_width).step_by(8) {
-                    std::arch::x86_64::_mm256_store_si256(dest.add(4 * col) as *mut _, bgra256);
+                    std::arch::x86_64::_mm256_store_si256(dest.add(4 * col) as *mut _, rgba256);
                 }
                 if width_pixels != aligned_width {
                     std::arch::x86_64::_mm256_storeu_si256(
                         dest.add(4 * (width_pixels - 8)) as *mut _,
-                        bgra256,
+                        rgba256,
                     );
                 }
                 dest = dest.add(stride_bytes);
@@ -121,12 +121,12 @@ mod avx {
         } else {
             for _row in 0..height_pixels {
                 for col in (0..aligned_width).step_by(8) {
-                    std::arch::x86_64::_mm256_storeu_si256(dest.add(4 * col) as *mut _, bgra256);
+                    std::arch::x86_64::_mm256_storeu_si256(dest.add(4 * col) as *mut _, rgba256);
                 }
                 if width_pixels != aligned_width {
                     std::arch::x86_64::_mm256_storeu_si256(
                         dest.add(4 * (width_pixels - 8)) as *mut _,
-                        bgra256,
+                        rgba256,
                     );
                 }
                 dest = dest.add(stride_bytes);
@@ -135,7 +135,7 @@ mod avx {
     }
 }
 
-/// A bitmap in big endian bgra32 color format with abstract
+/// A bitmap in big endian rgba32 color format with abstract
 /// storage filled in by the trait implementation.
 pub trait BitmapImage {
     /// Obtain a read only pointer to the pixel data
@@ -168,7 +168,7 @@ pub trait BitmapImage {
     }
 
     #[inline]
-    /// Obtain a mutable reference to the raw bgra pixel at the specified coordinates
+    /// Obtain a mutable reference to the raw rgba pixel at the specified coordinates
     fn pixel_mut(&mut self, x: usize, y: usize) -> &mut u32 {
         let (width, height) = self.image_dimensions();
         debug_assert!(
@@ -187,7 +187,7 @@ pub trait BitmapImage {
     }
 
     #[inline]
-    /// Read the raw bgra pixel at the specified coordinates
+    /// Read the raw rgba pixel at the specified coordinates
     fn pixel(&self, x: usize, y: usize) -> &u32 {
         let (width, height) = self.image_dimensions();
         debug_assert!(x < width && y < height);
@@ -361,7 +361,7 @@ pub trait BitmapImage {
     }
 }
 
-/// A bitmap in big endian bgra32 color format, with storage
+/// A bitmap in big endian rgba32 color format, with storage
 /// in a Vec<u8>.
 pub struct Image {
     data: Vec<u8>,
@@ -376,7 +376,7 @@ impl Into<Vec<u8>> for Image {
 }
 
 impl Image {
-    /// Create a new bgra32 image buffer with the specified dimensions.
+    /// Create a new rgba32 image buffer with the specified dimensions.
     /// The buffer is initialized to all zeroes.
     pub fn new(width: usize, height: usize) -> Image {
         let size = height * width * 4;
@@ -397,7 +397,7 @@ impl Image {
         }
     }
 
-    /// Create a new bgra32 image buffer with the specified dimensions.
+    /// Create a new rgba32 image buffer with the specified dimensions.
     /// The buffer is populated with the source data in bgr24 format.
     pub fn with_bgr24(width: usize, height: usize, stride: usize, data: &[u8]) -> Image {
         let mut image = Image::new(width, height);
@@ -410,17 +410,17 @@ impl Image {
                 let green = data[src_offset + (x * 3) + 1];
                 let red = data[src_offset + (x * 3) + 2];
                 let alpha = red | green | blue;
-                image.data[dest_offset + (x * 4) + 0] = blue;
+                image.data[dest_offset + (x * 4) + 0] = red;
                 image.data[dest_offset + (x * 4) + 1] = green;
-                image.data[dest_offset + (x * 4) + 2] = red;
+                image.data[dest_offset + (x * 4) + 2] = blue;
                 image.data[dest_offset + (x * 4) + 3] = alpha;
             }
         }
         image
     }
 
-    /// Create a new bgra32 image buffer with the specified dimensions.
-    /// The buffer is populated with the source data in argb32 format.
+    /// Create a new rgba32 image buffer with the specified dimensions.
+    /// The buffer is populated with the source data in bgra32 format.
     pub fn with_bgra32(width: usize, height: usize, stride: usize, data: &[u8]) -> Image {
         let mut image = Image::new(width, height);
         for y in 0..height {
@@ -432,16 +432,16 @@ impl Image {
                 let green = data[src_offset + (x * 4) + 1];
                 let red = data[src_offset + (x * 4) + 2];
                 let alpha = data[src_offset + (x * 4) + 3];
-                image.data[dest_offset + (x * 4) + 0] = blue;
+                image.data[dest_offset + (x * 4) + 0] = red;
                 image.data[dest_offset + (x * 4) + 1] = green;
-                image.data[dest_offset + (x * 4) + 2] = red;
+                image.data[dest_offset + (x * 4) + 2] = blue;
                 image.data[dest_offset + (x * 4) + 3] = alpha;
             }
         }
         image
     }
 
-    /// Create a new bgra32 image buffer with the specified dimensions.
+    /// Create a new rgba32 image buffer with the specified dimensions.
     /// The buffer is populated with the source data in rgba32 format.
     pub fn with_rgba32(width: usize, height: usize, stride: usize, data: &[u8]) -> Image {
         let mut image = Image::new(width, height);
@@ -454,9 +454,9 @@ impl Image {
                 let green = data[src_offset + (x * 4) + 1];
                 let blue = data[src_offset + (x * 4) + 2];
                 let alpha = data[src_offset + (x * 4) + 3];
-                image.data[dest_offset + (x * 4) + 0] = blue;
+                image.data[dest_offset + (x * 4) + 0] = red;
                 image.data[dest_offset + (x * 4) + 1] = green;
-                image.data[dest_offset + (x * 4) + 2] = red;
+                image.data[dest_offset + (x * 4) + 2] = blue;
                 image.data[dest_offset + (x * 4) + 3] = alpha;
             }
         }

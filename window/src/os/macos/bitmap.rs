@@ -1,7 +1,5 @@
 use crate::bitmaps::BitmapImage;
-use core_graphics::base::{
-    kCGBitmapByteOrder32Little, kCGImageAlphaPremultipliedFirst, kCGRenderingIntentDefault,
-};
+use core_graphics::base::*;
 use core_graphics::color_space::CGColorSpace;
 use core_graphics::data_provider::CGDataProvider;
 use core_graphics::image::CGImage;
@@ -47,7 +45,7 @@ impl<'a> BitmapRef<'a> {
             32,
             bytes_per_row,
             &CGColorSpace::create_device_rgb(),
-            kCGImageAlphaPremultipliedFirst | kCGBitmapByteOrder32Little,
+            kCGBitmapByteOrder32Big,
             &provider,
             should_interpolate,
             kCGRenderingIntentDefault,
