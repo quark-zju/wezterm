@@ -53,6 +53,7 @@ pub mod color;
 pub mod error;
 pub mod escape;
 pub mod hyperlink;
+#[cfg(feature = "image")]
 pub mod image;
 pub mod input;
 pub mod istty;

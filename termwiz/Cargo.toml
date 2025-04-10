@@ -33,7 +33,7 @@ pest.workspace = true
 pest_derive.workspace = true
 phf.workspace = true
 serde = {workspace=true, features = ["rc", "derive"], optional=true}
-sha2.workspace = true
+sha2 = {workspace=true, optional=true}
 siphasher.workspace = true
 terminfo.workspace = true
 thiserror.workspace = true
@@ -41,16 +41,18 @@ ucd-trie.workspace = true
 unicode-segmentation.workspace = true
 vtparse.workspace = true
 wezterm-bidi.workspace = true
-wezterm-blob-leases.workspace = true
+wezterm-blob-leases = {workspace=true, optional=true}
 wezterm-color-types.workspace = true
 wezterm-dynamic.workspace = true
 wezterm-input-types.workspace = true
 
 [features]
+default = ["image"]
 widgets = ["cassowary", "fnv"]
 use_serde = ["serde", "wezterm-color-types/use_serde", "wezterm-blob-leases/serde", "bitflags/serde", "wezterm-input-types/serde"]
-use_image = ["image"]
-docs = ["widgets", "use_serde"]
+use_image = ["image", "dep:image"]
+image = ["sha2", "wezterm-blob-leases"]
+docs = ["widgets", "use_serde", "image"]
 
 [dev-dependencies]
 criterion.workspace = true

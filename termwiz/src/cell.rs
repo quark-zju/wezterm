@@ -3,6 +3,7 @@ use crate::color::{ColorAttribute, PaletteIndex};
 pub use crate::emoji::Presentation;
 use crate::emoji_variation::WCWIDTH_TABLE;
 pub use crate::escape::osc::Hyperlink;
+#[cfg(feature = "image")]
 use crate::image::ImageCell;
 use crate::widechar_width::WcWidth;
 use finl_unicode::grapheme_clusters::Graphemes;
@@ -81,6 +82,7 @@ struct FatAttributes {
     /// The hyperlink content, if any
     hyperlink: Option<Arc<Hyperlink>>,
     /// The image data, if any
+    #[cfg(feature = "image")]
     image: Vec<Box<ImageCell>>,
     /// The color of the underline.  If None, then
     /// the foreground color is to be used
@@ -94,6 +96,7 @@ impl FatAttributes {
         if let Some(link) = &self.hyperlink {
             link.compute_shape_hash(hasher);
         }
+        #[cfg(feature = "image")]
         for cell in &self.image {
             cell.compute_shape_hash(hasher);
         }
@@ -384,6 +387,7 @@ impl CellAttributes {
         if self.fat.is_none() {
             self.fat.replace(Box::new(FatAttributes {
                 hyperlink: None,
+                #[cfg(feature = "image")]
                 image: vec![],
                 underline_color: ColorAttribute::Default,
                 foreground: ColorAttribute::Default,
@@ -397,8 +401,13 @@ impl CellAttributes {
             .fat
             .as_ref()
             .map(|fat| {
-                fat.image.is_empty()
-                    && fat.hyperlink.is_none()
+                #[cfg(feature = "image")]
+                {
+                    if !fat.image.is_empty() {
+                        return false;
+                    }
+                }
+                fat.hyperlink.is_none()
                     && fat.underline_color == ColorAttribute::Default
                     && fat.foreground == ColorAttribute::Default
                     && fat.background == ColorAttribute::Default
@@ -419,7 +428,10 @@ impl CellAttributes {
             self
         }
     }
+}
 
+#[cfg(feature = "image")]
+impl CellAttributes {
     /// Assign a single image to a cell.
     pub fn set_image(&mut self, image: Box<ImageCell>) -> &mut Self {
         self.allocate_fat_attributes();
@@ -458,7 +470,9 @@ impl CellAttributes {
         }
         self
     }
+}
 
+impl CellAttributes {
     pub fn set_underline_color<C: Into<ColorAttribute>>(
         &mut self,
         underline_color: C,
@@ -523,6 +537,7 @@ impl CellAttributes {
     /// Returns the list of attached images in z-index order.
     /// Returns None if there are no attached images; will
     /// never return Some(vec![]).
+    #[cfg(feature = "image")]
     pub fn images(&self) -> Option<Vec<ImageCell>> {
         let fat = self.fat.as_ref()?;
         if fat.image.is_empty() {
