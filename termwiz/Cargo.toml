@@ -29,8 +29,8 @@ memmem.workspace = true
 num-derive.workspace = true
 num-traits.workspace = true
 ordered-float.workspace = true
-pest.workspace = true
-pest_derive.workspace = true
+pest = {workspace=true, optional=true}
+pest_derive = {workspace=true, optional=true}
 phf.workspace = true
 serde = {workspace=true, features = ["rc", "derive"], optional=true}
 sha2 = {workspace=true, optional=true}
@@ -47,12 +47,13 @@ wezterm-dynamic.workspace = true
 wezterm-input-types.workspace = true
 
 [features]
-default = ["image"]
+default = ["image", "tmux_cc"]
 widgets = ["cassowary", "fnv"]
 use_serde = ["serde", "wezterm-color-types/use_serde", "wezterm-blob-leases/serde", "bitflags/serde", "wezterm-input-types/serde"]
 use_image = ["image", "dep:image"]
 image = ["sha2", "wezterm-blob-leases"]
-docs = ["widgets", "use_serde", "image"]
+tmux_cc = ["pest", "pest_derive"]
+docs = ["widgets", "use_serde", "image", "tmux_cc"]
 
 [dev-dependencies]
 criterion.workspace = true
