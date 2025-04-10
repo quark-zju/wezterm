@@ -13,6 +13,5 @@ use_serde = ["serde"]
 [dependencies]
 csscolorparser = {workspace=true, features=["lab"]}
 deltae.workspace = true
-lazy_static.workspace = true
 serde = {workspace=true, features = ["derive"], optional=true}
 wezterm-dynamic.workspace = true

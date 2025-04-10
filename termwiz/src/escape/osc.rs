@@ -10,6 +10,7 @@ use std::collections::HashMap;
 use std::fmt::{Display, Error as FmtError, Formatter, Result as FmtResult};
 use std::str;
 use std::str::FromStr;
+use std::sync::LazyLock;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum ColorOrQuery {
@@ -483,9 +484,7 @@ struct OscMap {
     variant_to_code: HashMap<OperatingSystemCommandCode, &'static str>,
 }
 
-lazy_static::lazy_static! {
-    static ref OSC_MAP: OscMap = OscMap::new();
-}
+static OSC_MAP: LazyLock<OscMap> = LazyLock::new(OscMap::new);
 
 impl OperatingSystemCommandCode {
     fn from_code(code: &str) -> Option<Self> {

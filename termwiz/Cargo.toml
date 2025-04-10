@@ -22,7 +22,6 @@ fixedbitset.workspace = true
 fnv = {workspace=true, optional=true}
 hex.workspace = true
 image = {workspace=true, optional=true}
-lazy_static.workspace = true
 libc.workspace = true
 log.workspace = true
 memmem.workspace = true

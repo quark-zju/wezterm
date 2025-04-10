@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::fmt::Write;
 use std::sync::atomic::AtomicBool;
-use std::sync::Arc;
+use std::sync::{Arc, LazyLock};
 use wezterm_dynamic::{FromDynamic, ToDynamic};
 
 pub struct PixelUnit;
@@ -1141,10 +1141,10 @@ impl PhysKeyCode {
     }
 }
 
-lazy_static::lazy_static! {
-    static ref PHYSKEYCODE_MAP: HashMap<String, PhysKeyCode> = PhysKeyCode::make_map();
-    static ref INV_PHYSKEYCODE_MAP: HashMap<PhysKeyCode, String> = PhysKeyCode::make_inv_map();
-}
+static PHYSKEYCODE_MAP: LazyLock<HashMap<String, PhysKeyCode>> =
+    LazyLock::new(PhysKeyCode::make_map);
+static INV_PHYSKEYCODE_MAP: LazyLock<HashMap<PhysKeyCode, String>> =
+    LazyLock::new(PhysKeyCode::make_inv_map);
 
 impl TryFrom<&str> for PhysKeyCode {
     type Error = String;
